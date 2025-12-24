@@ -2,24 +2,24 @@ const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 
-const { registerSchema, loginSchema } = require("./types")
-const { User } = require("./models")
+const { registerSchema, loginSchema } = require("../types")
+const { User } = require("../models")
 
-const app = express()
-app.use(cors())
-app.use(express.json())
 require('dotenv').config()
 
+const router = express.Router()
 
-app.post('/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     try {
         const result = registerSchema.safeParse(req.body);
         if (!result.success) {
+            console.log(result)
             return res.status(400).json({
-                message: "Input Validation failed",
+                message: result.error.message,
                 errors: result.error.errors,
             });
         }
+        
         const { username, email, password } = req.body;
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -39,7 +39,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const result = loginSchema.safeParse(req.body);
         if (!result.success) {
@@ -84,6 +84,4 @@ app.post('/login', async (req, res) => {
 
 
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
+module.exports = router
