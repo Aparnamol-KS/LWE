@@ -22,6 +22,7 @@ function Flashcards() {
 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const currentCard = flashcards[index];
 
@@ -37,9 +38,13 @@ function Flashcards() {
     );
   };
 
-  return (
-    <div className='min-h-screen bg-[#0f1115] text-white font-["Montserrat"] px-4 sm:px-6 py-15'>
+  const saveFlashcards = () => {
+    // later → API call
+    setSaved(true);
+  };
 
+  return (
+    <div className='min-h-screen bg-[#0f1115] text-white font-["Montserrat"] px-4 sm:px-6 py-15 h-screen'>
       <div className="max-w-4xl mx-auto">
 
         {/* ---------- HEADER ---------- */}
@@ -68,9 +73,16 @@ function Flashcards() {
         {/* ---------- FLASHCARD ---------- */}
         <div
           onClick={() => setFlipped(!flipped)}
-          className="cursor-pointer bg-[#161a22] border border-white/5 rounded-2xl
-                     p-8 sm:p-10 min-h-[220px] flex items-center justify-center
-                     text-center transition hover:bg-[#1c2230]"
+          className={`cursor-pointer border border-white/5 rounded-2xl
+                      p-8 sm:p-10 min-h-[220px]
+                      flex items-center justify-center text-center
+                      transition
+                      ${
+                        flipped
+                          ? "bg-[#0f172a] text-blue-200"
+                          : "bg-[#161a22] text-white"
+                      }
+                      hover:bg-[#1c2230]`}
         >
           <p className="text-base sm:text-lg leading-relaxed">
             {flipped ? currentCard.back : currentCard.front}
@@ -93,15 +105,6 @@ function Flashcards() {
           </button>
 
           <button
-            onClick={() => setFlipped(!flipped)}
-            className="px-5 py-3 rounded-xl bg-blue-600
-                       hover:bg-blue-700 transition
-                       text-sm sm:text-base"
-          >
-            Flip
-          </button>
-
-          <button
             onClick={nextCard}
             className="px-5 py-3 rounded-xl bg-[#161a22]
                        border border-white/10 hover:bg-[#1c2230]
@@ -110,6 +113,25 @@ function Flashcards() {
             Next
           </button>
         </div>
+
+        {/* ---------- SAVE SECTION ---------- */}
+        <div className="mt-6 flex justify-center">
+          {!saved ? (
+            <button
+              onClick={saveFlashcards}
+              className="px-6 py-3 rounded-xl bg-blue-600
+                         hover:bg-blue-700 transition
+                         text-sm sm:text-base"
+            >
+              Save these flashcards
+            </button>
+          ) : (
+            <p className="text-sm text-green-400">
+              Flashcards saved ✓
+            </p>
+          )}
+        </div>
+
       </div>
     </div>
   );
