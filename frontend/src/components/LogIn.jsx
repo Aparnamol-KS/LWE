@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
+  const navigate = useNavigate()
   const handleSubmit = async (e) => {
     e.preventDefault(); // stop page reload
     setError("");
@@ -19,7 +19,7 @@ function Login() {
 
       const { token } = res.data;
       localStorage.setItem("token", token);
-      console.log("Login successful"); //---------------redirect
+      navigate('/dashboard')
 
     } catch (err) {
       setError(

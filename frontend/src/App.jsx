@@ -5,8 +5,15 @@ import { Suspense } from "react";
 import './App.css'
 
 import Login from "./components/LogIn";
-import  Register  from "./components/Register"
-
+import Register  from "./components/Register";
+import Landing from "./components/LandingPage";
+import Dashboard from "./components/Dashboard";
+import NewDocument from "./components/NewDocument";
+import Documents from "./components/Documents";
+import DocumentView from "./components/DocumentView";
+import Chat from "./components/Chat";
+import Flashcards from "./components/Flashcards";
+import Quiz from "./components/Quiz";
 
 
 function App() {
@@ -19,9 +26,18 @@ function App() {
       }>
         <Routes>
           {/* Public Routes */}
-          {/* <Route path="/" element={<HomePage />} /> */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/new_document" element={<NewDocument />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/view_document/:id" element={<DocumentView />} />
+          <Route path="/documents/:id/chat" element={<Chat />} />
+          <Route path="/documents/:id/flashcards" element={<Flashcards />} />
+          <Route path="/documents/:id/quiz" element={<Quiz />} />
+
+          
           {/* <Route path="*" element={<NotFound />} /> */}
 
           {/* User Protected Routes */}
