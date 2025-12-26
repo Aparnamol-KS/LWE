@@ -6,23 +6,85 @@ function NewDocument() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success" // success | error
+  });
 
+  function showToast(message, type = "success") {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  }
 
   async function saveDocument() {
-    if (mode === "paste") {
-      console.log("pasting mode...")
-    } else if (mode === "upload") {
-      const formData = new FormData();
-      formData.append("file", file)
-      formData.append("title", title)
+    if (isSaving) return;
 
-      const res = await axios.post('http://localhost:3000/api/document/upload', formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "token": localStorage.getItem("token")
+    if (!title.trim()) {
+      showToast("Title is required", "error");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      if (mode === "paste") {
+        if (!content.trim()) {
+          showToast("Content cannot be empty", "error");
+          return;
         }
-      })
+
+        await axios.post(
+          "http://localhost:3000/api/document/paste",
+          { title, content },
+          {
+            headers: {
+              token: localStorage.getItem("token")
+            }
+          }
+        );
+
+        showToast("Document saved successfully");
+        setTitle("");
+        setContent("");
+
+      } else if (mode === "upload") {
+        if (!file) {
+          showToast("Please select a PDF file", "error");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("title", title);
+
+        await axios.post(
+          "http://localhost:3000/api/document/upload",
+          formData,
+          {
+            headers: {
+              token: localStorage.getItem("token")
+            }
+          }
+        );
+
+        showToast("PDF uploaded and processed successfully");
+        setTitle("");
+        setFile(null);
+      }
+
+    } catch (err) {
+      console.error(err);
+      showToast(
+        err.response?.data?.message || "Something went wrong",
+        "error"
+      );
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -30,7 +92,7 @@ function NewDocument() {
     <div className='min-h-screen bg-[#0f1115] text-white font-["Montserrat"] px-4 sm:px-6 py-15'>
       <div className="max-w-4xl mx-auto">
 
-        {/* ---------------- HEADER ---------------- */}
+        {/* HEADER */}
         <h1 className="text-3xl sm:text-4xl font-semibold mb-2">
           Add New Document
         </h1>
@@ -38,17 +100,19 @@ function NewDocument() {
           Add your learning material to start understanding better.
         </p>
 
-        {/* ---------------- MODE SELECT ---------------- */}
+        {/* MODE SELECT */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
           <ModeButton
             active={mode === "paste"}
             onClick={() => setMode("paste")}
             label="Copy & Paste"
+            disabled={isSaving}
           />
           <ModeButton
             active={mode === "upload"}
             onClick={() => setMode("upload")}
             label="Upload PDF"
+            disabled={isSaving}
           />
           <ModeButton
             active={mode === "transcription"}
@@ -58,7 +122,7 @@ function NewDocument() {
           />
         </div>
 
-        {/* ---------------- FORM ---------------- */}
+        {/* FORM */}
         <div className="bg-[#161a22] border border-white/5 rounded-xl p-6">
 
           {/* Title */}
@@ -68,73 +132,78 @@ function NewDocument() {
             </label>
             <input
               type="text"
-              placeholder="Eg: Operating Systems – CPU Scheduling"
               value={title}
+              disabled={isSaving}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Eg: Operating Systems – CPU Scheduling"
               className="w-full px-4 py-3 rounded-lg bg-[#0f1115] text-white
                          border border-white/10 focus:outline-none
-                         focus:ring-2 focus:ring-blue-500"
+                         focus:ring-2 focus:ring-blue-500
+                         disabled:opacity-60"
             />
           </div>
 
           {/* Paste Mode */}
           {mode === "paste" && (
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                Paste your content
-              </label>
-              <textarea
-                rows="10"
-                placeholder="Paste lecture notes, captions, or study material here..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-[#0f1115] text-white
-                           border border-white/10 focus:outline-none
-                           focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <textarea
+              rows="10"
+              disabled={isSaving}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Paste lecture notes, captions, or study material here..."
+              className="w-full px-4 py-3 rounded-lg bg-[#0f1115] text-white
+                         border border-white/10 focus:outline-none
+                         focus:ring-2 focus:ring-blue-500
+                         disabled:opacity-60"
+            />
           )}
 
           {/* Upload Mode */}
           {mode === "upload" && (
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                Upload PDF file
-              </label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setFile(e.target.files[0])}
-                className="w-full text-sm text-gray-400
-                           file:mr-4 file:py-2 file:px-4
-                           file:rounded-lg file:border-0
-                           file:bg-blue-600 file:text-white
-                           hover:file:bg-blue-700"
-              />
-            </div>
-          )}
-
-          {/* Transcription Placeholder */}
-          {mode === "transcription" && (
-            <div className="text-gray-400 text-sm">
-              Live transcription will be available in a future update.
-            </div>
+            <input
+              type="file"
+              accept=".pdf"
+              disabled={isSaving}
+              onChange={(e) => setFile(e.target.files[0])}
+              className="w-full text-sm text-gray-400
+                         file:mr-4 file:py-2 file:px-4
+                         file:rounded-lg file:border-0
+                         file:bg-blue-600 file:text-white
+                         hover:file:bg-blue-700
+                         disabled:opacity-60"
+            />
           )}
 
           {/* Submit */}
           <button
-            onClick={() => saveDocument()}
-            className="mt-6 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition cursor-pointer"
+            onClick={saveDocument}
+            disabled={isSaving}
+            className={`mt-6 px-6 py-3 rounded-lg transition cursor-pointer
+              ${isSaving
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"}
+            `}
           >
-            Save Document
+            {isSaving ? "Saving..." : "Save Document"}
           </button>
         </div>
       </div>
+
+      {/* TOAST */}
+      {toast.show && (
+        <div
+          className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg text-sm
+            ${toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"}
+          `}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
-
-/* ---------------- SMALL COMPONENTS ---------------- */
 
 function ModeButton({ label, active, onClick, disabled }) {
   return (

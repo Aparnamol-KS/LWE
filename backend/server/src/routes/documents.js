@@ -7,7 +7,7 @@ const pdfParse = require('pdf-parse');
 const router = express.Router()
 
 const { authMiddleware } = require('../middleware')
-const { User, Document } = require('../models')
+const { Document } = require('../models')
 
 const upload = multer({
     dest: 'uploads/',
@@ -19,26 +19,119 @@ const upload = multer({
     }
 })
 
-//add document via copy & paste
-router.post('/', authMiddleware, async (req, res) => {
-    
+router.post('/paste', authMiddleware, async (req, res) => {
+    try {
+        const title = req.body.title?.trim();
+        const content = req.body.content?.trim();
 
-})
+        if (!title || !content) {
+            return res.status(400).json({
+                message: "Title and content are required"
+            });
+        }
 
-//get all documents filter by user
-router.get('/', authMiddleware, async (req, res) => {
+        if (content.length > 100000) {
+            return res.status(413).json({
+                message: "Content too large"
+            });
+        }
 
-})
+        const doc = await Document.create({
+            userId: req.user.id,
+            title,
+            content,
+            source: "text"
+        });
 
-//get a specific document filter by user , filter by id
-router.get('/:id', authMiddleware, async (req, res) => {
+        return res.status(201).json({
+            message: "Document created successfully",
+            document: doc
+        });
 
-})
+    } catch (err) {
+        console.error("Paste document error:", err);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+});
 
-//delete a specific document 
-router.delete('/:id', authMiddleware, async (req, res) => {
 
-})
+router.get("/", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const docs = await Document.find({ userId }).sort({ createdAt: -1 });
+        return res.status(200).json({
+            docs
+        });
+    } catch (err) {
+        console.error("Fetch documents error:", err);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+});
+
+
+router.get("/:id", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const documentId = req.params.id;
+
+        const doc = await Document.findOne({
+            _id: documentId,
+            userId: userId
+        });
+
+        if (!doc) {
+            return res.status(404).json({
+                message: "Document not found"
+            });
+        }
+
+        return res.status(200).json({
+            doc
+        });
+
+    } catch (err) {
+        console.error("Fetch document error:", err);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+});
+
+
+router.delete("/:id", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const documentId = req.params.id;
+
+        const result = await Document.deleteOne({
+            _id: documentId,
+            userId: userId
+        });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({
+                message: "Document not found"
+            });
+        }
+
+
+        return res.status(200).json({
+            message: "Document deleted successfully"
+        });
+
+    } catch (err) {
+        console.error("Delete document error:", err);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+});
+
 
 //add document via upload
 router.post('/upload', authMiddleware, upload.single("file"), async (req, res) => {
