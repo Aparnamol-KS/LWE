@@ -1,5 +1,4 @@
 const express = require('express')
-const cors = require('cors')
 const jwt = require('jsonwebtoken')
 
 const { registerSchema, loginSchema } = require("../types")
@@ -19,7 +18,7 @@ router.post('/register', async (req, res) => {
                 errors: result.error.errors,
             });
         }
-        
+
         const { username, email, password } = req.body;
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -64,7 +63,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, role: user.role, username: user.username },
+            { id: user._id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
@@ -73,7 +72,7 @@ router.post('/login', async (req, res) => {
         res.json({
             message: "Login successful",
             token,
-            user: { id: user._id, username: user.username, role: user.role }
+            user: { id: user._id, username: user.username }
         });
     } catch (error) {
         res.status(500).json({

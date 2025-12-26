@@ -1,10 +1,30 @@
 import { useState } from "react";
+import axios from "axios";
 
 function NewDocument() {
   const [mode, setMode] = useState("paste"); // paste | upload | transcription
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
+
+
+
+  async function saveDocument() {
+    if (mode === "paste") {
+      console.log("pasting mode...")
+    } else if (mode === "upload") {
+      const formData = new FormData();
+      formData.append("file", file)
+      formData.append("title", title)
+
+      const res = await axios.post('http://localhost:3000/api/document/upload', formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "token": localStorage.getItem("token")
+        }
+      })
+    }
+  }
 
   return (
     <div className='min-h-screen bg-[#0f1115] text-white font-["Montserrat"] px-4 sm:px-6 py-15'>
@@ -103,7 +123,8 @@ function NewDocument() {
 
           {/* Submit */}
           <button
-            className="mt-6 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+            onClick={() => saveDocument()}
+            className="mt-6 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition cursor-pointer"
           >
             Save Document
           </button>
