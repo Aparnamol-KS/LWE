@@ -31,6 +31,40 @@ async function generateQuiz(documentText) {
     return completion.choices[0].message.content
 }
 
+
+
+async function generateFlashcards(documentText) {
+    const prompt = `
+    Create 6–10 flashcards from the following content.
+
+    Rules:
+    - Each flashcard must have:
+        - question: a short question or key concept
+        - answer: a clear, simple explanation
+    - Use simple, student-friendly language
+    - Avoid long paragraphs
+    - Do NOT add extra text
+
+    Return ONLY valid JSON in this format:
+    [
+        { "question": "...", "answer": "..." }
+    ]
+
+    Content:
+    ${documentText}
+    `;
+
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3
+    });
+
+    return completion.choices[0].message.content;
+}
+
+
+
 module.exports = {
-    generateQuiz
+    generateQuiz,generateFlashcards
 }

@@ -1,28 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 
 function Flashcards() {
   const { id } = useParams();
 
-  // ✅ Demo flashcards (replace with backend later)
-  const [flashcards] = useState([
-    {
-      front: "What is CPU scheduling?",
-      back: "CPU scheduling is the process by which the operating system selects which process should use the CPU next."
-    },
-    {
-      front: "Why is CPU scheduling important?",
-      back: "It improves CPU utilization, throughput, and response time."
-    },
-    {
-      front: "Name one CPU scheduling algorithm.",
-      back: "First Come First Serve (FCFS), Shortest Job First (SJF), or Round Robin."
-    }
-  ]);
-
+  const [flashcards, setFlashcards] = useState([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // 🔔 Toast state
   const [toast, setToast] = useState({
@@ -38,10 +25,29 @@ function Flashcards() {
     }, 3000);
   }
 
+  useEffect(() => {
+    async function fetchFlashcards() {
+      try {
+        const res = await axios.post(`http://localhost:3000/api/ai/flashcards/${id}`,{}, {
+          headers: {
+            token: localStorage.getItem("token")
+          }
+        });
+        setFlashcards(res.data.flashcards);
+        setSaved(res.data.saved);
+      } catch (err) {
+        showToast("Failed to load flashcards", "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchFlashcards();
+  }, [id]);
+
   const currentCard = flashcards[index];
 
   const flipCard = () => {
-    // ✅ small intentional delay for flip feel
     setTimeout(() => {
       setFlipped((f) => !f);
     }, 150);
@@ -59,10 +65,46 @@ function Flashcards() {
     );
   };
 
-  const saveFlashcards = () => {
-    setSaved(true);
-    showToast("Flashcards saved successfully ✅");
+
+  const saveFlashcards = async () => {
+    if (saved) {
+      showToast("Flashcards already saved", "error");
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:3000/api/ai/flashcards/${id}/save`, {
+        flashcards
+      }, {
+        headers: {
+          token: localStorage.getItem("token")
+        }
+      });
+
+      setSaved(true);
+      showToast("Flashcards saved successfully ");
+    } catch (err) {
+      showToast("Failed to save flashcards", "error");
+    }
   };
+
+  // ⏳ Loading
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0f1115] text-gray-400">
+        Generating flashcards...
+      </div>
+    );
+  }
+
+  // ❌ No flashcards
+  if (flashcards.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0f1115] text-gray-400">
+        No flashcards available
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-screen bg-[#0f1115] text-white font-["Montserrat"] px-4 sm:px-6 py-15'>
@@ -82,7 +124,6 @@ function Flashcards() {
               Flashcards
             </h1>
 
-            {/* ✅ SAVED BADGE */}
             {saved && (
               <span className="text-xs px-3 py-1 rounded-full
                                bg-green-600/20 text-green-400
@@ -109,15 +150,14 @@ function Flashcards() {
                       p-8 sm:p-10 min-h-[220px]
                       flex items-center justify-center text-center
                       transition-all duration-300
-                      ${
-                        flipped
-                          ? "bg-[#0f172a] text-blue-200 scale-[1.01]"
-                          : "bg-[#161a22] text-white"
-                      }
+                      ${flipped
+              ? "bg-[#0f172a] text-blue-200 scale-[1.01]"
+              : "bg-[#161a22] text-white"
+            }
                       hover:bg-[#1c2230]`}
         >
           <p className="text-base sm:text-lg leading-relaxed">
-            {flipped ? currentCard.back : currentCard.front}
+            {flipped ? currentCard.answer : currentCard.question}
           </p>
         </div>
 
@@ -127,41 +167,27 @@ function Flashcards() {
 
         {/* ---------- CONTROLS ---------- */}
         <div className="flex justify-center gap-4 mt-8">
-          <button
-            onClick={prevCard}
-            className="px-5 py-3 rounded-xl bg-[#161a22]
-                       border border-white/10 hover:bg-[#1c2230]
-                       text-sm sm:text-base"
-          >
+          <button onClick={prevCard} className="px-5 py-3 rounded-xl bg-[#161a22] border border-white/10 hover:bg-[#1c2230]">
             Previous
           </button>
-
-          <button
-            onClick={nextCard}
-            className="px-5 py-3 rounded-xl bg-[#161a22]
-                       border border-white/10 hover:bg-[#1c2230]
-                       text-sm sm:text-base"
-          >
+          <button onClick={nextCard} className="px-5 py-3 rounded-xl bg-[#161a22] border border-white/10 hover:bg-[#1c2230]">
             Next
           </button>
         </div>
 
-        {/* ---------- SAVE SECTION ---------- */}
+        {/* ---------- SAVE ---------- */}
         <div className="mt-6 flex justify-center">
-          {!saved ? (
-            <button
-              onClick={saveFlashcards}
-              className="px-6 py-3 rounded-xl bg-blue-600
-                         hover:bg-blue-700 transition
-                         text-sm sm:text-base"
-            >
-              Save these flashcards
-            </button>
-          ) : (
-            <p className="text-sm text-green-400">
-              Flashcards saved ✓
-            </p>
-          )}
+          <button
+            onClick={saveFlashcards}
+            disabled={saved}
+            className={`px-6 py-3 rounded-xl text-sm sm:text-base transition
+              ${saved
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+              }`}
+          >
+            {saved ? "Already saved" : "Save these flashcards"}
+          </button>
         </div>
 
       </div>
@@ -170,7 +196,7 @@ function Flashcards() {
       {toast.show && (
         <div
           className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg text-sm
-            ${toast.type === "success"
+          ${toast.type === "success"
               ? "bg-green-600 text-white"
               : "bg-red-600 text-white"}`}
         >

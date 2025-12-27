@@ -6,7 +6,9 @@ require('dotenv').config()
 
 const { authMiddleware } = require('../middleware')
 const { Document } = require('../models')
-const { generateQuiz } = require('./helper')
+const { generateQuiz, generateFlashcards } = require('./helper')
+
+//QUIZ
 
 router.post("/quiz/:documentId", authMiddleware, async (req, res) => {
     try {
@@ -106,6 +108,100 @@ router.post("/quiz/:documentId/save", authMiddleware, async (req, res) => {
     }
 });
 
+//FLASHCARDS
+
+router.post('/flashcards/:documentId', authMiddleware, async (req, res) => {
+    try {
+        const doc = await Document.findOne({
+            _id: req.params.documentId,
+            userId: req.user.id
+        });
+
+        if (!doc) {
+            return res.status(404).json({ message: "Document not found!" });
+        }
+
+        // Return saved flashcards
+        if (doc.flashcards.length > 0) {
+            return res.json({
+                flashcards: doc.flashcards,
+                saved: true
+            });
+        }
+
+        // Generate flashcards
+        const aiResponse = await generateFlashcards(doc.content);
+
+        let flashcards;
+        try {
+            flashcards = JSON.parse(aiResponse);
+        } catch (err) {
+            return res.status(500).json({
+                message: "Failed to parse AI response"
+            });
+        }
+
+        // Basic validation
+        if (!Array.isArray(flashcards)) {
+            return res.status(500).json({
+                message: "Invalid flashcards format"
+            });
+        }
+
+        return res.json({
+            flashcards,
+            saved: false
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Server error while generating flashcards"
+        });
+    }
+});
+
+router.post('/flashcards/:documentId/save', authMiddleware, async (req, res) => {
+    try {
+        const { flashcards } = req.body;
+
+        if (!Array.isArray(flashcards) || flashcards.length === 0) {
+            return res.status(400).json({
+                message: "Invalid flashcard data"
+            });
+        }
+
+        const doc = await Document.findOne({
+            _id: req.params.documentId,
+            userId: req.user.id
+        });
+
+        if (!doc) {
+            return res.status(404).json({
+                message: "Document not found!"
+            });
+        }
+
+        if (doc.flashcards.length > 0) {
+            return res.status(400).json({
+                message: "Flashcards already saved"
+            });
+        }
+
+        doc.flashcards = flashcards;
+        await doc.save();
+
+        return res.json({
+            message: "Flashcards saved successfully!"
+        });
+
+    } catch (err) {
+        console.error("Save flashcard error:", err);
+        return res.status(500).json({
+            message: "Failed to save flashcards"
+        });
+    }
+});
 
 
 
