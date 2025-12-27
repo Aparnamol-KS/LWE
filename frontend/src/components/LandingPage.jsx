@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 function Landing() {
+  const isLoggedIn = Boolean(localStorage.getItem("token"));
+
   return (
     <div className='bg-[#0f1115] text-white font-["Montserrat"]'>
 
@@ -18,19 +20,37 @@ function Landing() {
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/register"
-              className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition text-center"
-            >
-              Get Started
-            </Link>
-            <Link
-              to="/login"
-              className="px-6 py-3 rounded-lg border border-white/10 hover:bg-white/5 transition text-center"
-            >
-              Sign In
-            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Link
+                  to="/register"
+                  className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition text-center"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  to="/login"
+                  className="px-6 py-3 rounded-lg border border-white/10 hover:bg-white/5 transition text-center"
+                >
+                  Sign In
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/dashboard"
+                className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition text-center"
+              >
+                Go to Dashboard
+              </Link>
+            )}
           </div>
+
+          {/* Optional subtle hint */}
+          {isLoggedIn && (
+            <p className="mt-4 text-sm text-gray-500">
+              You’re already signed in.
+            </p>
+          )}
         </div>
       </section>
 
@@ -101,42 +121,6 @@ function Landing() {
               desc="Clean text, calm UI, and zero dependency on audio."
             />
           </div>
-        </div>
-      </section>
-
-      {/* ---------------- CONTACT ---------------- */}
-      <section id="contact" className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-semibold mb-6">
-            Contact Us
-          </h2>
-          <p className="text-gray-400 mb-8 text-sm sm:text-base">
-            Have questions, suggestions, or accessibility feedback?
-            We’d love to hear from you.
-          </p>
-
-          <form className="space-y-4">
-            <input
-              type="email"
-              placeholder="Your email"
-              className="w-full px-4 py-3 rounded-lg bg-[#161a22] text-white
-                         border border-white/10 focus:outline-none
-                         focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-            />
-            <textarea
-              rows="4"
-              placeholder="Your message"
-              className="w-full px-4 py-3 rounded-lg bg-[#161a22] text-white
-                         border border-white/10 focus:outline-none
-                         focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-            />
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
-            >
-              Send Message
-            </button>
-          </form>
         </div>
       </section>
 
