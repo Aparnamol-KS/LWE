@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import axios from "axios"; 
 
 function Chat() {
   const { id } = useParams();
+
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -11,34 +13,67 @@ function Chat() {
         "Ask any question based on this document. I’ll explain it in simple terms."
     }
   ]);
+  const [loading, setLoading] = useState(false);
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success"
+  });
 
   const chatEndRef = useRef(null);
 
-  // Auto-scroll to bottom when new message arrives
+  function showToast(message, type = "success") {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  }
+
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
+  const handleSend = async () => {
+    if (!message.trim() || loading) return;
+
+    const userMessage = message;
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: message }
+      { role: "user", content: userMessage }
     ]);
     setMessage("");
+    setLoading(true);
 
-    // Placeholder AI response
-    setTimeout(() => {
+    try {
+      const res = await axios.post(`http://localhost:3000/api/ai/chat/${id}`, {
+        question: userMessage
+      }, {
+        headers: {
+          token: localStorage.getItem("token")
+        }
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: res.data.answer }
+      ]);
+    } catch (err) {
+      showToast("Failed to get answer", "error");
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "This is a sample explanation. Later, responses will be generated only from your document."
+            "Sorry, I couldn’t generate an answer right now. Please try again."
         }
       ]);
-    }, 600);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,7 +84,7 @@ function Chat() {
         <div className="max-w-5xl mx-auto">
           <Link
             to={`/view_document/${id}`}
-           className="text-sm text-blue-300 hover:underline"
+            className="text-sm text-blue-300 hover:underline"
           >
             ← Back to document
           </Link>
@@ -62,7 +97,7 @@ function Chat() {
         </div>
       </div>
 
-      {/* ---------- CHAT MESSAGES (SCROLLABLE) ---------- */}
+      {/* ---------- CHAT MESSAGES ---------- */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 pb-28">
         <div className="max-w-5xl mx-auto space-y-6">
           {messages.map((msg, idx) => (
@@ -72,11 +107,19 @@ function Chat() {
               content={msg.content}
             />
           ))}
+
+          {loading && (
+            <MessageBubble
+              role="assistant"
+              content="Thinking…"
+            />
+          )}
+
           <div ref={chatEndRef} />
         </div>
       </div>
 
-      {/* ---------- FIXED INPUT BAR ---------- */}
+      {/* ---------- INPUT BAR ---------- */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#0f1115] border-t border-white/5 px-4 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
           <textarea
@@ -89,6 +132,7 @@ function Chat() {
                        border border-white/10
                        focus:outline-none focus:ring-2 focus:ring-blue-500
                        text-sm sm:text-base"
+            disabled={loading}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -98,14 +142,29 @@ function Chat() {
           />
           <button
             onClick={handleSend}
-            className="px-5 py-3 rounded-xl bg-blue-600
-                       hover:bg-blue-700 transition
-                       text-sm sm:text-base font-medium"
+            disabled={loading}
+            className={`px-5 py-3 rounded-xl text-sm sm:text-base font-medium transition
+              ${loading
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+              }`}
           >
-            Ask
+            {loading ? "Asking..." : "Ask"}
           </button>
         </div>
       </div>
+
+      {/* 🔔 TOAST */}
+      {toast.show && (
+        <div
+          className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg text-sm
+          ${toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"}`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
@@ -122,8 +181,7 @@ function MessageBubble({ role, content }) {
           text-sm sm:text-base leading-relaxed
           ${isUser
             ? "bg-blue-600 text-white rounded-br-md"
-            : "bg-[#161a22] text-gray-200 border border-white/5 rounded-bl-md"}
-        `}
+            : "bg-[#161a22] text-gray-200 border border-white/5 rounded-bl-md"}`}
       >
         {content}
       </div>

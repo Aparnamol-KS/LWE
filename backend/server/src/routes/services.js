@@ -6,7 +6,7 @@ require('dotenv').config()
 
 const { authMiddleware } = require('../middleware')
 const { Document } = require('../models')
-const { generateQuiz, generateFlashcards } = require('./helper')
+const { generateQuiz, generateFlashcards, generateChatAnswer } = require('./helper')
 
 //QUIZ
 
@@ -199,6 +199,41 @@ router.post('/flashcards/:documentId/save', authMiddleware, async (req, res) => 
         console.error("Save flashcard error:", err);
         return res.status(500).json({
             message: "Failed to save flashcards"
+        });
+    }
+});
+
+
+//CHAT
+router.post('/chat/:documentId', authMiddleware, async (req, res) => {
+    try {
+        const { question } = req.body;
+
+        if (!question || question.trim() === "") {
+            return res.status(400).json({
+                message: "Question is required!"
+            });
+        }
+
+        const doc = await Document.findOne({
+            _id: req.params.documentId,
+            userId: req.user.id
+        });
+
+        if (!doc) {
+            return res.status(404).json({
+                message: "Document not found"
+            });
+        }
+
+        const answer = await generateChatAnswer(doc.content, question);
+
+        return res.json({ answer });
+
+    } catch (err) {
+        console.error("Chat error:", err);
+        return res.status(500).json({
+            message: "Failed to generate answer"
         });
     }
 });

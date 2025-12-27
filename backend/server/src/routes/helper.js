@@ -32,7 +32,6 @@ async function generateQuiz(documentText) {
 }
 
 
-
 async function generateFlashcards(documentText) {
     const prompt = `
     Create 6–10 flashcards from the following content.
@@ -64,7 +63,34 @@ async function generateFlashcards(documentText) {
 }
 
 
+async function generateChatAnswer(documentText, userQuestion) {
+    const prompt = `
+    You are an AI tutor for hearing-impaired students.
+
+    Rules:
+    - Answer ONLY using the document content below
+    - Use simple, clear language
+    - If the answer is not found in the document, say:
+    "I cannot find this information in the document."
+
+    Document:
+    ${documentText}
+
+    Question:
+    ${userQuestion}
+    `;
+
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2
+    });
+
+    return completion.choices[0].message.content;
+}
+
+
 
 module.exports = {
-    generateQuiz,generateFlashcards
+    generateQuiz, generateFlashcards, generateChatAnswer
 }

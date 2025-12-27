@@ -28,7 +28,7 @@ function Flashcards() {
   useEffect(() => {
     async function fetchFlashcards() {
       try {
-        const res = await axios.post(`http://localhost:3000/api/ai/flashcards/${id}`,{}, {
+        const res = await axios.post(`http://localhost:3000/api/ai/flashcards/${id}`, {}, {
           headers: {
             token: localStorage.getItem("token")
           }
@@ -144,22 +144,47 @@ function Flashcards() {
         </div>
 
         {/* ---------- FLASHCARD ---------- */}
+        {/* ---------- FLASHCARD ---------- */}
         <div
           onClick={flipCard}
-          className={`cursor-pointer border border-white/5 rounded-2xl
-                      p-8 sm:p-10 min-h-[220px]
-                      flex items-center justify-center text-center
-                      transition-all duration-300
-                      ${flipped
-              ? "bg-[#0f172a] text-blue-200 scale-[1.01]"
-              : "bg-[#161a22] text-white"
-            }
-                      hover:bg-[#1c2230]`}
+          className="cursor-pointer perspective"
         >
-          <p className="text-base sm:text-lg leading-relaxed">
-            {flipped ? currentCard.answer : currentCard.question}
-          </p>
+          <div
+            className={`relative w-full min-h-[220px]
+                transition-transform duration-1000 ease-in-out
+                transform-style-preserve-3d
+                ${flipped ? "rotate-y-180" : ""}`}
+          >
+
+            {/* FRONT (Question) */}
+            <div
+              className="absolute inset-0 flex items-center justify-center
+                 p-8 sm:p-10 text-center
+                 bg-[#161a22] text-white
+                 border border-white/5 rounded-2xl
+                 backface-hidden"
+            >
+              <p className="text-base sm:text-lg leading-relaxed">
+                {currentCard.question}
+              </p>
+            </div>
+
+            {/* BACK (Answer) */}
+            <div
+              className="absolute inset-0 flex items-center justify-center
+                 p-8 sm:p-10 text-center
+                 bg-[#0f172a] text-blue-200
+                 border border-white/5 rounded-2xl
+                 backface-hidden rotate-y-180 rounded-2xl"
+            >
+              <p className="text-base sm:text-lg leading-relaxed">
+                {currentCard.answer}
+              </p>
+            </div>
+
+          </div>
         </div>
+
 
         <p className="text-xs text-gray-500 mt-3 text-center">
           Tap or click the card to flip
@@ -192,7 +217,6 @@ function Flashcards() {
 
       </div>
 
-      {/* 🔔 TOAST */}
       {toast.show && (
         <div
           className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg text-sm
