@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import axios from "axios"; 
+import ReactMarkdown from "react-markdown";
+import axios from "axios";
 
 function Chat() {
   const { id } = useParams();
@@ -183,10 +184,31 @@ function MessageBubble({ role, content }) {
             ? "bg-blue-600 text-white rounded-br-md"
             : "bg-[#161a22] text-gray-200 border border-white/5 rounded-bl-md"}`}
       >
-        {content}
+        {isUser ? (
+          content
+        ) : (
+          <div className="prose prose-invert max-w-none">
+            <ReactMarkdown
+              components={{
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-5 space-y-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-5 space-y-1">{children}</ol>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-2 last:mb-0">{children}</p>
+                )
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 
 export default Chat;
