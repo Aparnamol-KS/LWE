@@ -53,7 +53,7 @@ function Chat() {
         question: userMessage
       }, {
         headers: {
-          token: localStorage.getItem("token")
+          token: sessionStorage.getItem("token")
         }
       });
 

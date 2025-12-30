@@ -34,7 +34,7 @@ function Quiz() {
           {},
           {
             headers: {
-              token: localStorage.getItem("token")
+              token: sessionStorage.getItem("token")
             }
           }
         );
@@ -88,7 +88,7 @@ function Quiz() {
         { quiz: { questions } },
         {
           headers: {
-            token: localStorage.getItem("token")
+            token: sessionStorage.getItem("token")
           }
         }
       );

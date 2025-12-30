@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 function Landing() {
-  const isLoggedIn = Boolean(localStorage.getItem("token"));
+  const isLoggedIn = Boolean(sessionStorage.getItem("token"));
 
   return (
     <div className='bg-[#0f1115] text-white font-["Montserrat"]'>

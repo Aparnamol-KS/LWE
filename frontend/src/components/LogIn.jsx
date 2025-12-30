@@ -18,7 +18,7 @@ function Login() {
       });
 
       const { token } = res.data;
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
       navigate('/dashboard')
 
     } catch (err) {

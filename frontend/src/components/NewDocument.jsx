@@ -43,7 +43,7 @@ function NewDocument() {
           { title, content },
           {
             headers: {
-              token: localStorage.getItem("token")
+              token: sessionStorage.getItem("token")
             }
           }
         );
@@ -67,7 +67,7 @@ function NewDocument() {
           formData,
           {
             headers: {
-              token: localStorage.getItem("token")
+             token: sessionStorage.getItem("token")
             }
           }
         );

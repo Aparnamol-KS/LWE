@@ -30,7 +30,7 @@ function Flashcards() {
       try {
         const res = await axios.post(`http://localhost:3000/api/ai/flashcards/${id}`, {}, {
           headers: {
-            token: localStorage.getItem("token")
+            token: sessionStorage.getItem("token")
           }
         });
         setFlashcards(res.data.flashcards);
@@ -77,7 +77,7 @@ function Flashcards() {
         flashcards
       }, {
         headers: {
-          token: localStorage.getItem("token")
+          token: sessionStorage.getItem("token")
         }
       });
 

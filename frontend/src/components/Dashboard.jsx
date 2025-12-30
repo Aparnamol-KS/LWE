@@ -13,7 +13,7 @@ function Dashboard() {
           "http://localhost:3000/api/document",
           {
             headers: {
-              token: localStorage.getItem("token")
+              token: sessionStorage.getItem("token")
             }
           }
         );
