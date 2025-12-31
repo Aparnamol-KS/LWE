@@ -10,7 +10,7 @@ function Dashboard() {
     async function fetchRecentDocs() {
       try {
         const res = await axios.get(
-          "http://localhost:3000/api/document",
+          `${import.meta.env.VITE_API_URL}/api/document`,
           {
             headers: {
               token: sessionStorage.getItem("token")

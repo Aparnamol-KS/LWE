@@ -28,7 +28,7 @@ function Flashcards() {
   useEffect(() => {
     async function fetchFlashcards() {
       try {
-        const res = await axios.post(`http://localhost:3000/api/ai/flashcards/${id}`, {}, {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/ai/flashcards/${id}`, {}, {
           headers: {
             token: sessionStorage.getItem("token")
           }
@@ -73,7 +73,7 @@ function Flashcards() {
     }
 
     try {
-      await axios.post(`http://localhost:3000/api/ai/flashcards/${id}/save`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/ai/flashcards/${id}/save`, {
         flashcards
       }, {
         headers: {

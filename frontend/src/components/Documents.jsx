@@ -23,10 +23,10 @@ function Documents() {
     async function fetchDocuments() {
       try {
         const res = await axios.get(
-          "http://localhost:3000/api/document/",
+          `${import.meta.env.VITE_API_URL}/api/document`,
           {
             headers: {
-              token: localStorage.getItem("token")
+              token: sessionStorage.getItem("token")
             }
           }
         );
@@ -50,7 +50,7 @@ function Documents() {
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/document/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/document/${id}`,
         {
           headers: {
             token: sessionStorage.getItem("token")

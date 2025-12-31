@@ -30,7 +30,7 @@ function Quiz() {
     async function fetchQuiz() {
       try {
         const res = await axios.post(
-          `http://localhost:3000/api/ai/quiz/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/ai/quiz/${id}`,
           {},
           {
             headers: {
@@ -84,7 +84,7 @@ function Quiz() {
   const saveQuiz = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/api/ai/quiz/${id}/save`,
+        `${import.meta.env.VITE_API_URL}/api/ai/quiz/${id}/save`,
         { quiz: { questions } },
         {
           headers: {

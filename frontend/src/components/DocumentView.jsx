@@ -12,7 +12,7 @@ function DocumentView() {
     async function fetchDocument() {
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/document/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/document/${id}`,
           {
             headers: {
               token: sessionStorage.getItem("token")

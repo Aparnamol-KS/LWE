@@ -39,7 +39,7 @@ function NewDocument() {
         }
 
         await axios.post(
-          "http://localhost:3000/api/document/paste",
+          `${import.meta.env.VITE_API_URL}/api/document/paste`,
           { title, content },
           {
             headers: {
@@ -63,7 +63,7 @@ function NewDocument() {
         formData.append("title", title);
 
         await axios.post(
-          "http://localhost:3000/api/document/upload",
+          `${import.meta.env.VITE_API_URL}/api/document/upload`,
           formData,
           {
             headers: {
